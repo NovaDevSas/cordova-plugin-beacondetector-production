@@ -1,108 +1,64 @@
-package com.tuempresa.beacondetector;
+package com.yourcompany;
 
-import android.Manifest;
-import android.os.Build;
-import android.os.RemoteException;
-import android.util.Log;
-import org.apache.cordova.*;
+import org.apache.cordova.CordovaPlugin;
+import org.apache.cordova.CallbackContext;
+import org.apache.cordova.PluginResult;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.altbeacon.beacon.*;
 
-import java.util.Collection;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothManager;
+import android.bluetooth.le.BluetoothLeScanner;
+import android.bluetooth.le.ScanCallback;
+import android.bluetooth.le.ScanResult;
+import android.content.Context;
+import android.util.Log;
 
-public class BeaconDetector extends CordovaPlugin implements BeaconConsumer {
-
-    private static final String TAG = "BeaconDetector";
-    private BeaconManager beaconManager;
-    private CallbackContext beaconCallbackContext;
+public class BeaconDetector extends CordovaPlugin {
+    private BluetoothLeScanner scanner;
+    private CallbackContext callbackContext;
 
     @Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
-        if ("startScanning".equals(action)) {
-            startScanning(callbackContext);
-            return true;
-        } else if ("stopScanning".equals(action)) {
-            stopScanning(callbackContext);
-            return true;
-        } else if ("setBeaconCallback".equals(action)) {
-            setBeaconCallback(callbackContext);
+        this.callbackContext = callbackContext;
+        if (action.equals("startScanning")) {
+            startScanning();
             return true;
         }
         return false;
     }
 
-    private void startScanning(CallbackContext callbackContext) {
-        // Verificar permiso de ubicación en runtime para Android 6+
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (!cordova.hasPermission(Manifest.permission.ACCESS_FINE_LOCATION)) {
-                cordova.requestPermission(this, 0, Manifest.permission.ACCESS_FINE_LOCATION);
-                callbackContext.error("Permiso de ubicación no concedido");
-                return;
-            }
-        }
-        if (beaconManager == null) {
-            beaconManager = BeaconManager.getInstanceForApplication(cordova.getActivity());
-            // Configurar el parser para iBeacon
-            beaconManager.getBeaconParsers().add(new BeaconParser().
-                    setBeaconLayout(BeaconParser.IBEACON_LAYOUT));
-            beaconManager.bind(this);
-        }
-        callbackContext.success("Escaneo iniciado");
-    }
+    private void startScanning() {
+        BluetoothManager bluetoothManager = (BluetoothManager) cordova.getActivity().getSystemService(Context.BLUETOOTH_SERVICE);
+        BluetoothAdapter bluetoothAdapter = bluetoothManager.getAdapter();
+        scanner = bluetoothAdapter.getBluetoothLeScanner();
 
-    private void stopScanning(CallbackContext callbackContext) {
-        if (beaconManager != null && beaconManager.isBound(this)) {
-            beaconManager.unbind(this);
-            beaconManager = null;
-        }
-        callbackContext.success("Escaneo detenido");
-    }
-
-    private void setBeaconCallback(CallbackContext callbackContext) {
-        this.beaconCallbackContext = callbackContext;
-        PluginResult result = new PluginResult(PluginResult.Status.NO_RESULT);
-        result.setKeepCallback(true);
-        callbackContext.sendPluginResult(result);
-    }
-
-    @Override
-    public void onBeaconServiceConnect() {
-        beaconManager.addRangeNotifier(new RangeNotifier() {
+        scanner.startScan(new ScanCallback() {
             @Override
-            public void didRangeBeaconsInRegion(Collection<Beacon> beacons, Region region) {
-                if (beaconCallbackContext != null && !beacons.isEmpty()) {
-                    for (Beacon beacon : beacons) {
-                        try {
-                            JSONObject jsonBeacon = new JSONObject();
-                            jsonBeacon.put("uuid", beacon.getId1().toString());
-                            jsonBeacon.put("major", beacon.getId2().toInt());
-                            jsonBeacon.put("minor", beacon.getId3().toInt());
-                            jsonBeacon.put("rssi", beacon.getRssi());
-                            PluginResult result = new PluginResult(PluginResult.Status.OK, jsonBeacon);
-                            result.setKeepCallback(true);
-                            beaconCallbackContext.sendPluginResult(result);
-                        } catch (JSONException e) {
-                            Log.e(TAG, "Error construyendo JSON para beacon", e);
-                        }
-                    }
+            public void onScanResult(int callbackType, ScanResult result) {
+                BluetoothDevice device = result.getDevice();
+                String address = device.getAddress();
+                int rssi = result.getRssi();
+                byte[] scanRecord = result.getScanRecord().getBytes();
+
+                // Parse beacon data from scanRecord
+                // ...
+
+                JSONObject beaconData = new JSONObject();
+                try {
+                    beaconData.put("address", address);
+                    beaconData.put("rssi", rssi);
+                    // Add other beacon data
+                } catch (JSONException e) {
+                    e.printStackTrace();
                 }
+
+                PluginResult pluginResult = new PluginResult(PluginResult.Status.OK, beaconData);
+                pluginResult.setKeepCallback(true);
+                callbackContext.sendPluginResult(pluginResult);
             }
         });
-        try {
-            // Inicia ranging sin filtrar (para detectar todos los beacons iBeacon)
-            beaconManager.startRangingBeaconsInRegion(new Region("myRangingUniqueId", null, null, null));
-        } catch (RemoteException e) {
-            Log.e(TAG, "Error iniciando ranging", e);
-        }
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        if (beaconManager != null && beaconManager.isBound(this)) {
-            beaconManager.unbind(this);
-        }
     }
 }
