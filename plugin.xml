@@ -3,10 +3,10 @@
         id="cordova-plugin-beacondetector-production"
         version="1.0.0">
     <name>BeaconDetectorProduction</name>
-    <description>Plugin para detección de iBeacons en Android e iOS usando AltBeacon y CoreLocation. Compatible con Gradle 7+.</description>
+    <description>Plugin para detección de iBeacons en Android e iOS.</description>
     <license>MIT</license>
     <keywords>cordova,ibeacon,beacon,android,ios</keywords>
-    <author>Tu Nombre</author>
+    <author>Juan Sebastian Quintero</author>
 
     <!-- Archivo JavaScript que se usará en la app -->
     <js-module src="www/BeaconDetector.js" name="BeaconDetector">
