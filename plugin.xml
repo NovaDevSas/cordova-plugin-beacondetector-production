@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
+        id="cordova-plugin-beacondetector-production"
+        version="1.0.0">
+    <name>BeaconDetectorProduction</name>
+    <description>Plugin para detección de iBeacons en Android e iOS usando AltBeacon y CoreLocation. Compatible con Gradle 7+.</description>
+    <license>MIT</license>
+    <keywords>cordova,ibeacon,beacon,android,ios</keywords>
+    <author>Tu Nombre</author>
+
+    <!-- Archivo JavaScript que se usará en la app -->
+    <js-module src="www/BeaconDetector.js" name="BeaconDetector">
+        <clobbers target="BeaconDetector" />
+    </js-module>
+
+    <!-- Plataforma Android -->
+    <platform name="android">
+        <!-- Agregar permisos necesarios -->
+        <config-file target="AndroidManifest.xml" parent="/manifest">
+            <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+            <uses-permission android:name="android.permission.BLUETOOTH" />
+            <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+            <uses-permission android:name="android.permission.BLUETOOTH_SCAN" android:required="false" />
+            <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" android:required="false" />
+        </config-file>
+
+        <!-- Dependencia de la Android Beacon Library utilizando la sintaxis actual -->
+        <framework src="org.altbeacon:android-beacon-library:2.19.2" type="gradleReference" custom="true" />
+
+        <!-- Código Java del plugin -->
+        <source-file src="src/android/BeaconDetector.java" target-dir="src/com/tuempresa/beacondetector" />
+    </platform>
+
+    <!-- Plataforma iOS -->
+    <platform name="ios">
+        <!-- Se usa Swift -->
+        <preference name="SwiftVersion" value="5.0" />
+        <source-file src="src/ios/BeaconDetector.swift" />
+
+        <!-- Configuración de Info.plist para permisos de ubicación -->
+        <config-file platform="ios" target="*-Info.plist" parent="NSLocationWhenInUseUsageDescription">
+            <string>La aplicación requiere acceso a la ubicación para detectar beacons.</string>
+        </config-file>
+        <config-file platform="ios" target="*-Info.plist" parent="NSLocationAlwaysAndWhenInUseUsageDescription">
+            <string>La aplicación requiere acceso a la ubicación para detectar beacons incluso en segundo plano.</string>
+        </config-file>
+    </platform>
+</plugin>
