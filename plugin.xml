@@ -25,7 +25,7 @@
         </config-file>
 
         <!-- Dependencia de la Android Beacon Library utilizando la sintaxis actual -->
-        <framework src="org.altbeacon:android-beacon-library:2.19.2" type="gradleReference" custom="true" />
+        <framework src="com.github.altbeacon:android-beacon-library:2.19.2" />
 
         <!-- Código Java del plugin -->
         <source-file src="src/android/BeaconDetector.java" target-dir="src/com/tuempresa/beacondetector" />
