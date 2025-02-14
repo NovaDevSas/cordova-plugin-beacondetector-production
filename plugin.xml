@@ -25,11 +25,11 @@
         </config-file>
 
         <!-- Dependencia de la Android Beacon Library utilizando la sintaxis actual -->
-        <framework src="com.github.altbeacon:android-beacon-library:2.19.2" />
+        <framework src="org.altbeacon:android-beacon-library:2.19.2" />
         
         <!-- Agregar repositorio Maven -->
         <mavenRepository>
-            <url>https://jitpack.io</url>
+            <url>https://repo.maven.apache.org/maven2</url>
         </mavenRepository>
 
         <!-- Código Java del plugin -->
